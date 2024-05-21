@@ -43,14 +43,11 @@ func getCmdsReal() []string {
     return cmdlines
 }
 
-func issueCommand(wr *io.PipeWriter, delay time.Duration, prompt string, cmd []byte) {
+func issueCommand(wr *io.PipeWriter, delay time.Duration, cmd []byte) {
     time.Sleep(delay)
-    fmt.Println(prompt)
     _, err := wr.Write(cmd)
     if err != nil {
         fmt.Println("Failed to write to pipe: ", err)
-    } else {
-        fmt.Println("Successfully write the command")
     }
 }
 
@@ -65,17 +62,18 @@ func readActionFile(path string) ([]string, error) {
      actions := []string{}
      scanner := bufio.NewScanner(file)
      for scanner.Scan() {
-         actions = append(actions, scanner.Text())
+         cmd := scanner.Text() + "\n"
+         actions = append(actions, cmd)
      }
 
      return actions, nil
 }
 
-func asyncInputs(no_redirect bool, action_file string, wr *io.PipeWriter) {
+func asyncInputs(redirect_input_yes bool, action_file string, wr *io.PipeWriter) {
     defer wr.Close()
 
     // No need to continue if auto-run is not needed.
-    if no_redirect {
+    if !redirect_input_yes {
         return
     }
 
@@ -88,7 +86,7 @@ func asyncInputs(no_redirect bool, action_file string, wr *io.PipeWriter) {
     time.Sleep(10*1000*time.Millisecond)
 
     for i := 0; i < len(cmd_list); i++ {
-        issueCommand(wr, 2*1000*time.Millisecond, "Issue command", []byte(cmd_list[i]))
+        issueCommand(wr, 2*1000*time.Millisecond, []byte(cmd_list[i]))
     }
 }
 
@@ -97,8 +95,8 @@ func runCmds(x []string) {
      cmd := exec.Command(x[0], remainings...)
 
      action_file := os.Getenv("qemu_action_file")
-     _, no_redirect := os.LookupEnv("qemu_no_redirect")
-     if no_redirect {
+     _, redirect_input_yes := os.LookupEnv("qemu_redirect_input")
+     if !redirect_input_yes {
          fmt.Println("Do not redirect input")
      }
 
@@ -108,14 +106,14 @@ func runCmds(x []string) {
      cmd.Stdout = os.Stdout
      cmd.Stderr = os.Stderr
 
-     if no_redirect {
-         cmd.Stdin = os.Stdin
-     } else {
+     if redirect_input_yes {
          cmd.Stdin = rd
+     } else {
+         cmd.Stdin = os.Stdin
      }
 
      fmt.Println("Before launching go routine")
-     go asyncInputs(no_redirect, action_file, wr)
+     go asyncInputs(redirect_input_yes, action_file, wr)
 
      err := cmd.Run()
 
