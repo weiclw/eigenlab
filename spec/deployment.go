@@ -21,16 +21,20 @@ type Deployment struct {
     } `yaml:"spec"`
 }
 
+func ParseYaml(data []byte, config *Deployment) error {
+    unmarshalError := yaml.Unmarshal(data, config)
+    if unmarshalError != nil {
+        return unmarshalError
+    } else {
+        return nil
+    }
+}
+
 func ReadYaml(path string, config *Deployment) error {
     yamlFile, readFileError := ioutil.ReadFile(path)
     if readFileError != nil {
         return readFileError
+    } else {
+        return ParseYaml(yamlFile, config)
     }
-
-    unmarshalError := yaml.Unmarshal(yamlFile, config)
-    if unmarshalError != nil {
-        return unmarshalError
-    }
-
-    return nil
 }
