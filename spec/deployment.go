@@ -1,4 +1,4 @@
-package deployment
+package spec
 
 import (
     "gopkg.in/yaml.v2"
