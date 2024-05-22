@@ -30,15 +30,18 @@ func optionsFromFlags(opts *Options) {
     redirectInputVisited := false
     actionFileVisited := false
 
+    redirectInputName := "redirect_input"
+    actionFileName := "action_file"
 
-    flag.BoolVar(&redirectInput, "redirect_input", false, "redirect so that it can run script")
-    flag.StringVar(&actionFile, "action_file", "", "path of action script file")
+
+    flag.BoolVar(&redirectInput, redirectInputName, false, "redirect so that it can run script")
+    flag.StringVar(&actionFile, actionFileName, "", "path of action script file")
 
     // Check which flags have been specified.
     flag.Visit(func(f *flag.Flag) {
-        if f.Name == "redirect_input" {
+        if f.Name == redirectInputName {
             redirectInputVisited = true
-        } else if f.Name == "action_file" {
+        } else if f.Name == actionFileName {
             actionFileVisited = true
         }
     })
