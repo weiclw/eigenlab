@@ -20,41 +20,47 @@ func optionsFromEnv(opts *Options) {
     opts.ActionFile = os.Getenv("qemu_action_file")
 }
 
+// Each of the instance will represent a command line argment in the function below
+type cmdArg struct {
+    value interface{}
+    visited bool
+    name string
+    comment string
+}
+
 // Commandline flags shall override values from env.
 func optionsFromFlags(opts *Options) {
-    var(
-        redirectInput bool
-        actionFile string
-    )
+    redirectInput := cmdArg{false, false, "redirect_input", "redirect so that it can run script"}
+    actionFile := cmdArg{"", false, "action_file", "path of action script"}
 
-    redirectInputVisited := false
-    actionFileVisited := false
+    if val, ok := redirectInput.value.(bool); ok {
+        flag.BoolVar(&val, redirectInput.name, val, redirectInput.comment)
+        redirectInput.value = val
+    }
 
-    redirectInputName := "redirect_input"
-    actionFileName := "action_file"
-
-
-    flag.BoolVar(&redirectInput, redirectInputName, false, "redirect so that it can run script")
-    flag.StringVar(&actionFile, actionFileName, "", "path of action script file")
+    if val, ok := actionFile.value.(string); ok {
+        flag.StringVar(&val, actionFile.name, val, actionFile.comment)
+        actionFile.value = val
+    }
 
     // Check which flags have been specified.
     flag.Visit(func(f *flag.Flag) {
-        if f.Name == redirectInputName {
-            redirectInputVisited = true
-        } else if f.Name == actionFileName {
-            actionFileVisited = true
+        if f.Name == redirectInput.name {
+            redirectInput.visited = true
+        } else if f.Name == actionFile.name {
+            actionFile.visited = true
         }
     })
 
     // This function automatically handles parsing error and may exit the program as well.
     flag.Parse()
 
-    if redirectInputVisited {
-        opts.RedirectInput = redirectInput
+    if redirectInput.visited {
+        opts.RedirectInput = redirectInput.value.(bool)
     }
 
-    if actionFileVisited {
-        opts.ActionFile = actionFile
+    if actionFile.visited {
+        opts.ActionFile = actionFile.value.(string)
     }
 }
 
