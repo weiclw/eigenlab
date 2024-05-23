@@ -2,6 +2,7 @@ package runner
 
 import (
     "bufio"
+    "eigenlab/options"
     "fmt"
     "io"
     "os"
@@ -57,14 +58,15 @@ func asyncInputs(redirect_input_yes bool, action_file string, wr *io.PipeWriter)
 }
 
 func Run(x []string) {
-     remainings := x[1:]
-     cmd := exec.Command(x[0], remainings...)
+     var opts options.Options
+     options.GetOptionsOnce(&opts)
 
-     action_file := os.Getenv("qemu_action_file")
-     _, redirect_input_yes := os.LookupEnv("qemu_redirect_input")
-     if !redirect_input_yes {
+     if !opts.RedirectInput {
          fmt.Println("Do not redirect input")
      }
+
+     remainings := x[1:]
+     cmd := exec.Command(x[0], remainings...)
 
      rd, wr := io.Pipe()
      defer rd.Close()
@@ -72,14 +74,14 @@ func Run(x []string) {
      cmd.Stdout = os.Stdout
      cmd.Stderr = os.Stderr
 
-     if redirect_input_yes {
+     if opts.RedirectInput {
          cmd.Stdin = rd
      } else {
          cmd.Stdin = os.Stdin
      }
 
      fmt.Println("Before launching go routine")
-     go asyncInputs(redirect_input_yes, action_file, wr)
+     go asyncInputs(opts.RedirectInput, opts.ActionFile, wr)
 
      err := cmd.Run()
 
