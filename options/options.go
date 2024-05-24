@@ -43,6 +43,9 @@ func optionsFromFlags(opts *Options) {
         actionFile.value = val
     }
 
+    // This function automatically handles parsing error and may exit the program as well.
+    flag.Parse()
+
     // Check which flags have been specified.
     flag.Visit(func(f *flag.Flag) {
         if f.Name == redirectInput.name {
@@ -51,9 +54,6 @@ func optionsFromFlags(opts *Options) {
             actionFile.visited = true
         }
     })
-
-    // This function automatically handles parsing error and may exit the program as well.
-    flag.Parse()
 
     if redirectInput.visited {
         opts.RedirectInput = redirectInput.value.(bool)
