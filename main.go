@@ -33,7 +33,11 @@ func getCmdsReal() []string {
         "-device",
         "virtio-blk-pci,drive=drive0,bootindex=0",
         "-drive",
-        "if=none,media=disk,id=drive0,file=/tmp/alpine-virt-3.18.4-aarch64.iso"}
+        "if=none,media=disk,id=drive0,file=/tmp/alpine-virt-3.18.4-aarch64.iso",
+        "-device",
+        "virtio-blk-pci,drive=drive1,bootindex=1",
+        "-drive",
+        "if=none,media=disk,id=drive1,file=/tmp/1.qcow2"}
 
     return cmdlines
 }
