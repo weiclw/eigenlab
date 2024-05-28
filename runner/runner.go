@@ -53,7 +53,7 @@ func asyncInputs(redirect_input_yes bool, action_file string, wr *io.PipeWriter)
     time.Sleep(10*1000*time.Millisecond)
 
     for i := 0; i < len(cmd_list); i++ {
-        issueCommand(wr, 2*1000*time.Millisecond, []byte(cmd_list[i]))
+        issueCommand(wr, 5*1000*time.Millisecond, []byte(cmd_list[i]))
     }
 }
 
