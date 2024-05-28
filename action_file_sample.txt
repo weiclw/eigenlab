@@ -1,0 +1,17 @@
+# This is an example of action_file.
+# Please replace <password> with your real password below.
+# And please remove the comments lines as well.
+root
+export SWAP_SIZE=0
+setup-alpine -c /root/1
+sed -i "s/TIMEZONEOPTS=none/TIMEZONEOPTS=US\/Pacific/" /root/1
+sed -i "s/DISKOPTS=none/DISKOPTS=\"-m data \/dev\/vdb\"/" /root/1
+setup-alpine -f /root/1
+<password>
+<password>
+y
+mkdir /media/vdb1
+mount /dev/vdb1 /media/vdb1
+sed -i "s/defaults 1 2$/defaults 1 0/" /etc/fstab
+lbu commit vdb1
+poweroff
