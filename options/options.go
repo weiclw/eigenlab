@@ -33,14 +33,15 @@ func optionsFromFlags(opts *Options) {
     redirectInput := cmdArg{false, false, "redirect_input", "redirect so that it can run script"}
     actionFile := cmdArg{"", false, "action_file", "path of action script"}
 
+    var redirectInputResult bool
+    var actionFileResult string
+
     if val, ok := redirectInput.value.(bool); ok {
-        flag.BoolVar(&val, redirectInput.name, val, redirectInput.comment)
-        redirectInput.value = val
+        flag.BoolVar(&redirectInputResult, redirectInput.name, val, redirectInput.comment)
     }
 
     if val, ok := actionFile.value.(string); ok {
-        flag.StringVar(&val, actionFile.name, val, actionFile.comment)
-        actionFile.value = val
+        flag.StringVar(&actionFileResult, actionFile.name, val, actionFile.comment)
     }
 
     // This function automatically handles parsing error and may exit the program as well.
@@ -56,11 +57,11 @@ func optionsFromFlags(opts *Options) {
     })
 
     if redirectInput.visited {
-        opts.RedirectInput = redirectInput.value.(bool)
+        opts.RedirectInput = redirectInputResult
     }
 
     if actionFile.visited {
-        opts.ActionFile = actionFile.value.(string)
+        opts.ActionFile = actionFileResult
     }
 }
 
