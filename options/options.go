@@ -21,27 +21,43 @@ func optionsFromEnv(opts *Options) {
 }
 
 // Each of the instance will represent a command line argment in the function below
-type cmdArg struct {
-    value interface{}
+type optionValue struct {
+    ptr interface{}
     visited bool
     name string
     comment string
 }
 
+type optionType interface {
+    bool | string
+}
+
+func newOption[V optionType](name string, default_value V, comment string) *optionValue {
+    return &optionValue{
+        ptr: &default_value,
+        visited: false,
+        name: name,
+        comment: comment,
+    }
+}
+
+func getOptionPtrOrDie[V optionType](o *optionValue) *V {
+    return o.ptr.(*V)
+}
+
 // Commandline flags shall override values from env.
 func optionsFromFlags(opts *Options) {
-    redirectInput := cmdArg{false, false, "redirect_input", "redirect so that it can run script"}
-    actionFile := cmdArg{"", false, "action_file", "path of action script"}
+    redirectInput := newOption("redirect_input", false, "redirect so that it can run script")
+    actionFile := newOption("action_file", "", "path of action script")
 
-    var redirectInputResult bool
-    var actionFileResult string
-
-    if val, ok := redirectInput.value.(bool); ok {
-        flag.BoolVar(&redirectInputResult, redirectInput.name, val, redirectInput.comment)
+    if ptr := getOptionPtrOrDie[bool](redirectInput); true {
+        val := *ptr
+        flag.BoolVar(ptr, redirectInput.name, val, redirectInput.comment)
     }
 
-    if val, ok := actionFile.value.(string); ok {
-        flag.StringVar(&actionFileResult, actionFile.name, val, actionFile.comment)
+    if ptr := getOptionPtrOrDie[string](actionFile); true {
+        val := *ptr
+        flag.StringVar(ptr, actionFile.name, val, actionFile.comment)
     }
 
     // This function automatically handles parsing error and may exit the program as well.
@@ -57,11 +73,11 @@ func optionsFromFlags(opts *Options) {
     })
 
     if redirectInput.visited {
-        opts.RedirectInput = redirectInputResult
+        opts.RedirectInput = *getOptionPtrOrDie[bool](redirectInput)
     }
 
     if actionFile.visited {
-        opts.ActionFile = actionFileResult
+        opts.ActionFile = *getOptionPtrOrDie[string](actionFile)
     }
 }
 
