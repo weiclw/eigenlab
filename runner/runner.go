@@ -58,11 +58,19 @@ func asyncInputs(redirect_input_yes bool, action_file string, wr *io.PipeWriter)
 }
 
 func Run(x []string) {
-     var opts options.Options
-     options.GetOptionsOnce(&opts)
+     opts := options.NewOptions()
+     options.GetOptionsOnce(opts)
 
-     if !opts.RedirectInput {
+     redirectInput := false
+     if redirect, got := options.GetOptionsValue[bool](opts, options.RedirectInputFlag); !got || !redirect {
          fmt.Println("Do not redirect input")
+     } else {
+         redirectInput = true
+     }
+
+     actionFile := ""
+     if file, got := options.GetOptionsValue[string](opts, options.ActionFileFlag); got {
+         actionFile = file
      }
 
      remainings := x[1:]
@@ -74,14 +82,14 @@ func Run(x []string) {
      cmd.Stdout = os.Stdout
      cmd.Stderr = os.Stderr
 
-     if opts.RedirectInput {
+     if redirectInput {
          cmd.Stdin = rd
      } else {
          cmd.Stdin = os.Stdin
      }
 
      fmt.Println("Before launching go routine")
-     go asyncInputs(opts.RedirectInput, opts.ActionFile, wr)
+     go asyncInputs(redirectInput, actionFile, wr)
 
      err := cmd.Run()
 
