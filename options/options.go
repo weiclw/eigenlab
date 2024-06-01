@@ -8,8 +8,6 @@ import (
 // Each of the instance will represent a command line argment in the function below
 type optionValue struct {
     ptr interface{}
-    default_value interface{}
-    visited bool
     name string
     comment string
 }
@@ -19,11 +17,8 @@ type optionType interface {
 }
 
 func newOption[V optionType](name string, default_value V, comment string) *optionValue {
-    replica := default_value
     return &optionValue{
-        ptr: &replica,
-        default_value: default_value,
-        visited: false,
+        ptr: &default_value,
         name: name,
         comment: comment,
     }
@@ -75,18 +70,11 @@ func GetOptionsValue[V optionType](o *Options, name string) (V, bool) {
     }
 }
 
-func GetOptionsInfo[V optionType](o *Options, name string) (*V, V, string) {
+func GetOptionsInfo[V optionType](o *Options, name string) (*V, string) {
     if v, ok := o.list[name]; ok {
-        return GetValuePtr[V](v), v.default_value.(V), v.comment
+        return GetValuePtr[V](v), v.comment
     } else {
-        var zero V
-        return nil, zero, ""
-    }
-}
-
-func (o Options) MarkAsVisited(name string) {
-    if v, ok := o.list[name]; ok {
-        v.visited = true
+        return nil, ""
     }
 }
         
@@ -106,12 +94,12 @@ func optionsFromEnv(opts *Options) {
 
 // Commandline flags shall override values from env.
 func optionsFromFlags(opts *Options) {
-    if ptr, _, comment := GetOptionsInfo[bool](opts, RedirectInputFlag); true {
+    if ptr, comment := GetOptionsInfo[bool](opts, RedirectInputFlag); true {
         default_val := *ptr
         flag.BoolVar(ptr, RedirectInputFlag, default_val, comment)
     }
 
-    if ptr, _, comment := GetOptionsInfo[string](opts, ActionFileFlag); true {
+    if ptr, comment := GetOptionsInfo[string](opts, ActionFileFlag); true {
         default_val := *ptr
         flag.StringVar(ptr, ActionFileFlag, default_val, comment)
     }
