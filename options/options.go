@@ -16,8 +16,8 @@ type optionType interface {
     bool | string
 }
 
-func newOption[V optionType](name string, default_value V, comment string) *optionValue {
-    return &optionValue{
+func newOption[V optionType](name string, default_value V, comment string) optionValue {
+    return optionValue{
         ptr: &default_value,
         name: name,
         comment: comment,
@@ -29,33 +29,31 @@ func GetValuePtr[V optionType](v *optionValue) *V {
 }
 
 type Options struct {
-    list map[string]*optionValue
+    list map[string]optionValue
 }
 
 var RedirectInputFlag = "qemu_redirect_input"
 var ActionFileFlag = "qemu_action_file"
 
 func NewOptions() *Options {
-    r := &Options{
-        list: map[string]*optionValue{},
+    return &Options{
+        list: map[string]optionValue{
+            RedirectInputFlag: newOption(
+                RedirectInputFlag,
+                false,
+                "redirect so that it can run script"),
+
+            ActionFileFlag: newOption(
+                ActionFileFlag,
+                "",
+                "path of action script"),
+        },
     }
-
-    r.list[RedirectInputFlag] = newOption(
-        RedirectInputFlag,
-        false,
-        "redirect so that it can run script")
-
-    r.list[ActionFileFlag] = newOption(
-        ActionFileFlag,
-        "",
-        "path of action script")
-
-    return r
 }
 
 func GetOptionsPtr[V optionType](o *Options, name string) *V {
     if v, ok := o.list[name]; ok {
-        return GetValuePtr[V](v)
+        return GetValuePtr[V](&v)
     } else {
         return nil
     }
@@ -72,7 +70,7 @@ func GetOptionsValue[V optionType](o *Options, name string) (V, bool) {
 
 func GetOptionsInfo[V optionType](o *Options, name string) (*V, string) {
     if v, ok := o.list[name]; ok {
-        return GetValuePtr[V](v), v.comment
+        return GetValuePtr[V](&v), v.comment
     } else {
         return nil, ""
     }
