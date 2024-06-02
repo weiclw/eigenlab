@@ -8,7 +8,6 @@ import (
 // Each of the instance will represent a command line argment in the function below
 type optionValue struct {
     ptr interface{}
-    name string
     comment string
 }
 
@@ -16,10 +15,9 @@ type optionType interface {
     bool | string
 }
 
-func newOption[V optionType](name string, default_value V, comment string) optionValue {
+func newOption[V optionType](default_value V, comment string) optionValue {
     return optionValue{
         ptr: &default_value,
-        name: name,
         comment: comment,
     }
 }
@@ -39,12 +37,10 @@ func NewOptions() *Options {
     return &Options{
         list: map[string]optionValue{
             RedirectInputFlag: newOption(
-                RedirectInputFlag,
                 false,
                 "redirect so that it can run script"),
 
             ActionFileFlag: newOption(
-                ActionFileFlag,
                 "",
                 "path of action script"),
         },
